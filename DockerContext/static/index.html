@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jejune Hub</title>
+  <script src="/config.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 640px;
+      margin: 2.5rem auto;
+      padding: 0 1rem;
+      background: #f0f2f5;
+      color: #1a1a1a;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #333; }
+    .tile {
+      background: white;
+      border-radius: 8px;
+      padding: 0.85rem 1.2rem;
+      margin: 0.45rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #d1d5db;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .dot.up   { background: #22c55e; }
+    .dot.down { background: #ef4444; }
+    .label { flex: 1; font-size: 0.92rem; }
+    .port { font-size: 0.78rem; color: #9ca3af; margin-left: 0.4rem; }
+    a.open-btn, span.open-btn {
+      padding: 0.28rem 0.75rem;
+      border-radius: 5px;
+      font-size: 0.82rem;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    a.open-btn {
+      background: #3b82f6;
+      color: white;
+    }
+    a.open-btn:hover { background: #2563eb; }
+    span.open-btn {
+      background: #e5e7eb;
+      color: #9ca3af;
+      cursor: default;
+    }
+  </style>
+</head>
+<body>
+  <h1>Jejune Hub</h1>
+  <div id="tiles"></div>
+  <script>
+    const cfg = window.__JEJUNE_HUB_CONFIG__ || {};
+
+    const services = [
+      { label: "Documents",                   url: cfg.DOCS_SERVER_URL,        openable: true  },
+      { label: "Knowledge Graph — file mode", url: cfg.KG_VIEWER_URL,     openable: true  },
+      { label: "Markdown Browser",             url: cfg.MARKDOWN_BROWSER_URL,  openable: true  },
+    ];
+
+    if (cfg.OXIGRAPH_URL) {
+      services.push(
+        { label: "Knowledge Graph DB (oxigraph)", url: cfg.KG_VIEWER_OXIGRAPH_URL, openable: true  },
+        { label: "Oxigraph (SPARQL endpoint)",    url: cfg.OXIGRAPH_URL,            openable: false },
+      );
+    }
+
+    const container = document.getElementById("tiles");
+
+    services.forEach(function(svc) {
+      if (!svc.url) return;
+
+      let port;
+      try {
+        port = new URL(svc.url).port || "80";
+      } catch (_) {
+        port = "?";
+      }
+
+      const tile = document.createElement("div");
+      tile.className = "tile";
+
+      const dot = document.createElement("span");
+      dot.className = "dot";
+
+      const labelEl = document.createElement("span");
+      labelEl.className = "label";
+      labelEl.innerHTML =
+        svc.label + '<span class="port">port ' + port + "</span>";
+
+      let actionEl;
+      if (svc.openable) {
+        actionEl = document.createElement("a");
+        actionEl.className = "open-btn";
+        actionEl.href = svc.url;
+        actionEl.target = "_blank";
+        actionEl.rel = "noopener noreferrer";
+        actionEl.textContent = "Open";
+      } else {
+        actionEl = document.createElement("span");
+        actionEl.className = "open-btn";
+        actionEl.textContent = "—";
+      }
+
+      tile.appendChild(dot);
+      tile.appendChild(labelEl);
+      tile.appendChild(actionEl);
+      container.appendChild(tile);
+
+      function probe() {
+        fetch(svc.url, {
+          mode: "no-cors",
+          signal: AbortSignal.timeout(3000),
+        }).then(function() {
+          dot.className = "dot up";
+        }).catch(function() {
+          dot.className = "dot down";
+        });
+      }
+
+      probe();
+      setInterval(probe, 5000);
+    });
+  </script>
+</body>
+</html>
