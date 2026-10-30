@@ -60,8 +60,8 @@ plugin = PluginDescription(
     group=hub_group,
     config_vars=[_CONFIG_VAR],
     config_hint=(
-        f"Set {_CONFIG_VAR} to the port exposed by the hub container"
-        f" (default {_DEFAULT_PORT})."
+        f"Set {_CONFIG_VAR} in deployment.env (in the deployment directory)"
+        f" to the port exposed by the hub container (default {_DEFAULT_PORT})."
     ),
     avail_hint="",
     check_availability=_check_availability,
