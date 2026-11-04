@@ -3,16 +3,18 @@
 from pathlib import Path
 
 from jejune_cli.component_containerized import ContComp
+from jejune_cli.containerized_context import ContainerizedContext
 
 
 class CompHub(ContComp):
-    def __init__(self) -> None:
+    def __init__(self, context: ContainerizedContext) -> None:
         super().__init__(
             name="hub",
             image_name="jejune:hub",
             dockerfile="DockerContext/Dockerfile",
             service_name="hub",
             hint="run `jejune build`",
+            context=context,
         )
         self.repos = [(None, "HUB_CONTEXT")]
         if self._context.ecosystem is not None:
